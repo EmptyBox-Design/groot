@@ -13,12 +13,12 @@ Groot powered by node.js, express, and slack API
 -slack-node
 
 
-##File Directory
+## File Directory
 -index.js
 -README.md
 -node_modules
 
-##ngrok Setup
+## ngrok Setup
 ngrok exposes local servers behind NATs and firewalls to the public internet over secure tunnels. This allows you to have an introspectable tunnel to monitor incoming and outgoing calls to your web-server.
 
 
@@ -33,7 +33,7 @@ ngrok exposes local servers behind NATs and firewalls to the public internet ove
 	- http log
 - move on to setting up node.js server using express.
 
-##Firebase Setup
+## Firebase Setup
 
 - Sign-in to Firebase
 - Go to Authentication Tab
