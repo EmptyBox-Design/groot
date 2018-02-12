@@ -31,65 +31,8 @@ var PORT=8080;
 var clientId = '55182832290.302872954259';
 var clientSecret = '8640aafad56fb739b3d1d02c50dbda44';
 
-var valueCounter = null,
-	dayCounter = null;
-
-//chrono job variable globals
-var rule = new schedule.RecurrenceRule();
-rule.minute = 30;
-rule.hour = 9;
-// rule.dayOfWeek = [0-7];
-
-webhookUri = "https://hooks.slack.com/services/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";
- 
-slack = new Slack();
-slack.setWebhook(webhookUri);
- 
-slack.webhook({
-	'channel': "#groot",
-	'username': "webhookbot",
-    "text": "Groot Bot Poll",
-    "attachments": [
-        {
-            "title": "Groot Statistics",
-            "fields": [
-                {
-                    "title": "Soil Composition",
-                    "value": "1",
-                    "short": true
-                },
-                {
-                    "title": "Last Watered",
-                    "value": "Tuesday January 22th at 10:00am",
-            		"short": false
-                }
-            ]
-        },
-        {
-            "fallback": "Should Groot be watered?",
-            "title": "Should Groot be watered?",
-            "callback_id": "groot_response",
-            "color": "#3AA3E3",
-            "attachment_type": "default",
-            "actions": [
-                {
-                    "name": "water_groot",
-                    "text": "Yes!",
-                    "type": "button",
-                    "value": "true"
-                },
-                {
-                    "name": "do_not_water_groot",
-                    "text": "No!",
-                    "type": "button",
-                    "value": "false"
-                }
-            ]
-        }
-    ]
-}, function(err, response) {
-
-});
+var userArray = [],
+	dayCounter = 1;
 
 function unixToString(unixTime){
 	return new Date(unixTime*1000).toString();
@@ -98,58 +41,181 @@ function unixToString(unixTime){
 app.post('/groot', function(req, res) {
 	var body = req.body,
 		json = JSON.parse(body.payload),
+		userId = json.user.id,
+		// user = json.user.user,
 		userValue = json.actions[0].value,
 		apiTimeStamp = json.action_ts,
 		timeStamp = unixToString(apiTimeStamp);
 
-
+	console.log("json return object: ",json)
 	console.log("dayCounter",dayCounter);
 	console.log("timeStamp", timeStamp);
 	console.log("value ", json.actions[0].value);
 
-
-	var ref = firebase.database().ref('poll/day1');
-
-	var data = {
-		'value': userValue
+	if(userArray.includes(user) === false){
+		userArray.push(user)
 	}
 
-	ref.set(data, function(error){
+	var ref = firebase.database().ref('poll/day_'+dayCounter);
+
+	var data = {}
+
+	data[user] ={
+		'value': userValue,
+		'timeStamp': timeStamp
+	}
+
+	console.log('data input: ', data);
+
+	ref.update(data, function(error){
 		if(error){
-			console.log('Data could not be saved');
+			console.log('User Data could not be saved');
 		}else{
-			console.log('Data saved successfully');
+			console.log('User Data saved successfully');
 		}
 	})
 
 	res.send()
 }); 
-var chronoJob = schedule.scheduleJob(rule, function(){
-	dayCounter++
-	// var currentDate = Date.now();
-	// console.log("currentDate", currentDate);
 
-	var currentDate = Math.round(+new Date()/1000);
-	currentDate = unixToString(currentDate)
+
+var morningRule = new schedule.RecurrenceRule();
+morningRule.minute = 30;
+morningRule.hour = 9;
+// rule.dayOfWeek = [0-7];
+
+var eveningRule = new schedule.RecurrenceRule();
+eveningRule.minute = 30;
+eveningRule.hour = 14;
+
+var morningCronJob = schedule.scheduleJob(morningRule, function(){
+	dayCounter++
+	var currentDate = Date.now();
 	console.log("currentDate", currentDate);
 
-	var setRef = firebase.database().ref("poll/"+dayCounter);
+	//Current date of Cron Job, this will be used to timestamp the Firebase entry.
+	var dateRef = firebase.database().ref('poll');
 
-	var dateObject = {
-		'dateStamp': currentDate
-	}
+	var dateRefObject = {}
+	dateRefObject["day_"+dayCounter] = currentDate
 
-	setRef.set(dateObject, function(error){
+	dateRef.update(dateRefObject, function(error){
 		if(error){
-			console.log('Data could not be saved');
+			console.log('Date Has Not Been Set Successfully');
 		}else{
-			console.log('Data saved successfully');
+			console.log('Date Has Been Set Successfully');
 		}
 	});
 
-	console.log('Groot Poll Firing');
+	webhookUri = "https://hooks.slack.com/services/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";
+	 
+	slack = new Slack();
+	slack.setWebhook(webhookUri);
+	 
+	slack.webhook({
+		'channel': "#groot",
+		'username': "webhookbot",
+	    "text": "Groot Bot Poll",
+	    "attachments": [
+	        {
+	            "title": "Groot Statistics",
+	            "fields": [
+	                {
+	                    "title": "Soil Composition",
+	                    "value": "1",
+	                    "short": true
+	                },
+	                {
+	                    "title": "Last Watered",
+	                    "value": "Tuesday January 22th at 10:00am",
+	            		"short": false
+	                }
+	            ]
+	        },
+	        {
+	            "fallback": "Should Groot be watered?",
+	            "title": "Should Groot be watered?",
+	            "callback_id": "groot_response",
+	            "color": "#3AA3E3",
+	            "attachment_type": "default",
+	            "actions": [
+	                {
+	                    "name": "water_groot",
+	                    "text": "Yes!",
+	                    "type": "button",
+	                    "value": "true"
+	                },
+	                {
+	                    "name": "do_not_water_groot",
+	                    "text": "No!",
+	                    "type": "button",
+	                    "value": "false"
+	                }
+	            ]
+	        }
+	    ]
+	}, function(err, response) {
+
+	});
 });
 
+var eveningCronJob = schedule.scheduleJob(eveningRule, function(){
+
+	console.log("Current Day: ","day_"+dayCounter);
+
+	var eveningRef = firebase.database().ref("poll/day_"+ dayCounter);
+
+	eveningRef.once('value')
+		.then(function(snap){
+			console.log("snap", snap.val());
+			console.log("Array of User Who Voted Today: ",userArray);
+
+			var snapshot = snap.val();
+			var yesCounter = 0,
+				noCounter = 0;
+
+			for (var i = userArray.length - 1; i >= 0; i--) {
+				console.log('user: ',userArray[i]);
+
+				if(snapshot[userArray[i]].value === "true"){
+					yesCounter++
+				}else if(snapshot[userArray[i]].value === 'false'){
+					noCounter++
+				}else{
+					console.log('user not found')
+				}
+			}
+			webhookUri = "https://hooks.slack.com/services/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";
+			 
+			slack = new Slack();
+			slack.setWebhook(webhookUri);
+			 
+			slack.webhook({
+				'channel': "#groot",
+				'username': "webhookbot",
+			    "text": "Groot Bot Poll Results",
+			    "attachments": [
+			    	{
+			    		'title': 'Results From Vote',
+			    		'fields': [
+			    			{
+				    			'title': 'Votes for Yes.',
+				    			'value': yesCounter,
+				    			'short': true
+			    			},
+			    			{
+					    		'title': 'Votes for No',
+				    			'value': noCounter,
+				    			'short': true		    				
+			    			}
+			    		]
+			    	}
+			    ]
+			}, function(err, response) {
+
+			});
+		});
+});
 // ngrok tunnel
 app.listen(PORT, function () {
     //Callback triggered when server is successfully!
