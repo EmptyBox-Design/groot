@@ -39,13 +39,16 @@ function unixToString(unixTime){
 }
 
 app.post('/groot', function(req, res) {
+
 	var body = req.body,
 		json = JSON.parse(body.payload),
 		userId = json.user.id,
-		// user = json.user.user,
+		user = json.user.name,
 		userValue = json.actions[0].value,
+		userToken = json.token,
 		apiTimeStamp = json.action_ts,
-		timeStamp = unixToString(apiTimeStamp);
+		responseUrl = json.response_url,
+		timeStamp = unixToString(apiTimeStamp)
 
 	console.log("json return object: ",json)
 	console.log("dayCounter",dayCounter);
@@ -67,21 +70,39 @@ app.post('/groot', function(req, res) {
 
 	console.log('data input: ', data);
 
+	slack = new Slack("xoxb-303092270309-c7U0RXu1dZtkiq44PUPJUGGf");
+
+	var messageObject = {
+		"channel": '#groot',
+		"user":userId,
+		"token": userToken
+	}
 	ref.update(data, function(error){
 		if(error){
 			console.log('User Data could not be saved');
+			messageObject["text"] = "User Entry could not be saved"
+			// console.log("messageObject",messageObject);
+			slack.api('chat.postEphemeral', messageObject, function(err, response){
+				// console.log(response);
+	});			
 		}else{
 			console.log('User Data saved successfully');
+			messageObject["text"] = "User Entry saved successfully"	
+
+			// console.log("messageObject",messageObject);
+			slack.api('chat.postEphemeral', messageObject, function(err, response){
+				// console.log(response);
+			});					
 		}
 	})
 
 	res.send()
 }); 
 
-
+// 15:3 16:4 17: 5 18:6 19:7 20:8
 var morningRule = new schedule.RecurrenceRule();
-morningRule.minute = 30;
-morningRule.hour = 9;
+morningRule.minute = 54;
+morningRule.hour = 6;
 // rule.dayOfWeek = [0-7];
 
 var eveningRule = new schedule.RecurrenceRule();
