@@ -38,6 +38,9 @@ function unixToString(unixTime){
 	return new Date(unixTime*1000).toString();
 }
 
+function dayCounter(input){
+
+}
 app.post('/groot', function(req, res) {
 
 	var body = req.body,
@@ -70,7 +73,7 @@ app.post('/groot', function(req, res) {
 
 	console.log('data input: ', data);
 
-	slack = new Slack("xoxb-303092270309-c7U0RXu1dZtkiq44PUPJUGGf");
+	slack = new Slack("");
 
 	var messageObject = {
 		"channel": '#groot',
@@ -80,14 +83,14 @@ app.post('/groot', function(req, res) {
 	ref.update(data, function(error){
 		if(error){
 			console.log('User Data could not be saved');
-			messageObject["text"] = "User Entry could not be saved"
+			messageObject["text"] = "User Entry Could not be Saved"
 			// console.log("messageObject",messageObject);
 			slack.api('chat.postEphemeral', messageObject, function(err, response){
 				// console.log(response);
 	});			
 		}else{
 			console.log('User Data saved successfully');
-			messageObject["text"] = "User Entry saved successfully"	
+			messageObject["text"] = "User Entry Saved Successfully"	
 
 			// console.log("messageObject",messageObject);
 			slack.api('chat.postEphemeral', messageObject, function(err, response){
@@ -101,8 +104,8 @@ app.post('/groot', function(req, res) {
 
 // 15:3 16:4 17: 5 18:6 19:7 20:8
 var morningRule = new schedule.RecurrenceRule();
-morningRule.minute = 54;
-morningRule.hour = 6;
+morningRule.minute = 30;
+morningRule.hour = 9;
 // rule.dayOfWeek = [0-7];
 
 var eveningRule = new schedule.RecurrenceRule();
@@ -110,9 +113,8 @@ eveningRule.minute = 30;
 eveningRule.hour = 14;
 
 var morningCronJob = schedule.scheduleJob(morningRule, function(){
-	dayCounter++
-	var currentDate = Date.now();
-	console.log("currentDate", currentDate);
+
+	var currentDate = null
 
 	//Current date of Cron Job, this will be used to timestamp the Firebase entry.
 	var dateRef = firebase.database().ref('poll');
