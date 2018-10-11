@@ -28,8 +28,8 @@ app.use(bodyParser.urlencoded({ extended: false}))
 firebase.initializeApp(config);
 
 var PORT=8080;
-var clientId = '55182832290.302872954259';
-var clientSecret = '8640aafad56fb739b3d1d02c50dbda44';
+var clientId = ""; // stored as eniv variables
+var clientSecret = ""; // stored as eniv variables
 
 var userArray = [],
 	dayCounter = 1;
